@@ -645,8 +645,8 @@ spec:
           value: "Bearer {{ args.api-token }}" 
 ```
 
-## Handling Metric Results - NaN and Infinity
-Metric providers can sometimes return values of NaN (not a number) and infinity. Users can edit the `successCondition` and `failureCondition` fields
+## Handling Metric Results - NaN, Infinity, and empty array
+Metric providers can sometimes return values of NaN (not a number), infinity or an empty array. Users can edit the `successCondition` and `failureCondition` fields
 to handle these cases accordingly.
 
 Here are three examples where a metric result of NaN is considered successful, inconclusive and failed respectively.
@@ -753,4 +753,44 @@ status:
   phase: Failed
   startedAt: "2021-02-10T00:15:26Z"
 ```
+Here are two examples where a metric result of [] (empty array) is considered successful and failed respectively.
 
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisRun
+  ...
+    successCondition: len(result) == 0 || result[0] >= 0.95
+status:
+  metricResults:
+  - count: 1
+    measurements:
+    - finishedAt: "2021-02-10T00:15:26Z"
+      phase: Successful
+      startedAt: "2021-02-10T00:15:26Z"
+      value: []
+    name: success-rate
+    phase: Successful
+    successful: 1
+  phase: Successful
+  startedAt: "2021-02-10T00:15:26Z"
+```
+
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisRun
+  ...
+    failureCondition: len(result) > 0 && result[0] < 0.95
+status:
+  metricResults:
+  - count: 1
+    measurements:
+    - finishedAt: "2021-02-10T00:15:26Z"
+      phase: Failed
+      startedAt: "2021-02-10T00:15:26Z"
+      value: []
+    name: success-rate
+    phase: Failed
+    successful: 1
+  phase: Failed
+  startedAt: "2021-02-10T00:15:26Z"
+```
